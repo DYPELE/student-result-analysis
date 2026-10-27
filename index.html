@@ -1,277 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Result Analysis Dashboard</title>
-<style>
-:root{--navy:#17324d;--blue:#2563eb;--bg:#f3f6fb;--text:#1f2937;--muted:#64748b;--line:#dce4ef;--green:#15803d;--red:#b91c1c}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-header{background:linear-gradient(120deg,#17324d,#245b86);color:white;padding:24px clamp(16px,4vw,48px)}
-header h1{margin:0 0 7px;font-size:clamp(23px,3vw,32px)}header p{margin:0;color:#dbeafe}
-main{max-width:1400px;margin:22px auto;padding:0 16px 40px}
-.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 4px 14px #17324d0a}
-.panel h2{margin:0 0 14px;font-size:18px}.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
-.field{display:flex;flex-direction:column;gap:6px;min-width:145px;flex:1}.field label{font-size:12px;font-weight:bold;color:var(--muted)}
-input,select,button{font:inherit;border-radius:8px;border:1px solid #cbd5e1;padding:10px;background:white;color:var(--text)}
-input[type=file]{max-width:100%}button{cursor:pointer;font-weight:bold;background:var(--blue);color:white;border-color:var(--blue)}button.secondary{background:white;color:var(--navy);border-color:#cbd5e1}button:hover{filter:brightness(.97)}
-.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.metric{background:white;border:1px solid var(--line);border-radius:14px;padding:16px}.metric .label{font-size:12px;color:var(--muted);margin-bottom:8px}.metric .value{font-size:28px;font-weight:700;color:var(--navy)}.metric .sub{font-size:12px;color:var(--muted);margin-top:5px}
-.two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}.chart-row{display:grid;grid-template-columns:120px 1fr 55px;gap:10px;align-items:center;margin:13px 0;font-size:13px}.track{height:12px;background:#e8eef6;border-radius:99px;overflow:hidden}.bar{height:100%;background:#3b82f6;border-radius:99px}.bar.low{background:#dc6262}.bar.good{background:#22a06b}
-.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}th,td{padding:10px 9px;border-bottom:1px solid #e5eaf1;text-align:left;white-space:nowrap}th{background:#f8fafc;color:#475569;position:sticky;top:0}td.num,th.num{text-align:center}.pill{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:bold}.pass{background:#dcfce7;color:#166534}.fail{background:#fee2e2;color:#991b1b}.muted{color:var(--muted)}.small{font-size:12px}
-footer{text-align:center;color:var(--muted);font-size:12px;padding:14px}
-@media(max-width:800px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.two-col{grid-template-columns:1fr}.chart-row{grid-template-columns:100px 1fr 45px}}@media(max-width:420px){.metrics{grid-template-columns:1fr 1fr}.metric .value{font-size:23px}}
-</style>
-</head>
-<body>
-<header>
-  <h1>Student Result Analysis</h1>
-  <p>Department dashboard · Academic performance, pass percentage and learner support</p>
-</header>
-<main>
-  <section class="panel">
-    <h2>Import marks and configure passing criteria</h2>
-    <div class="controls">
-      <div class="field"><label for="college">College / Department</label><input id="college" value="Electrical Engineering Department" /></div>
-      <div class="field"><label for="semester">Semester / Exam</label><input id="semester" value="Semester Examination" /></div>
-      <div class="field" style="max-width:170px"><label for="passmark">Pass marks per subject</label><input id="passmark" type="number" min="0" value="12" /></div>
-      <div class="field"><label for="csvFile">Upload CSV marks file</label><input id="csvFile" type="file" accept=".csv,text/csv" /></div>
-    </div>
-    <div class="controls" style="margin-top:12px">
-      <button id="sampleBtn">Load sample data</button>
-      <button id="templateBtn" class="secondary">Download CSV template</button>
-      <button id="exportBtn" class="secondary">Export analysed results</button>
-      <button id="printBtn" class="secondary">Print / Save PDF</button>
-    </div>
-    <p class="note">CSV format: RollNo,Name,Subject1,Subject2,Subject3,Subject4,Subject5. You can rename the subject columns in your CSV. Marks should be numeric. This demo runs locally in your browser; uploaded marks are not sent to a server.</p>
-  </section>
-
-  <section class="metrics">
-    <div class="metric"><div class="label">Total Students</div><div class="value" id="totalStudents">0</div><div class="sub">Students in loaded file</div></div>
-    <div class="metric"><div class="label">Overall Pass</div><div class="value" id="passPercent">0%</div><div class="sub" id="passCount">0 students passed all subjects</div></div>
-    <div class="metric"><div class="label">Overall Fail</div><div class="value" id="failPercent">0%</div><div class="sub" id="failCount">0 students with one or more failures</div></div>
-    <div class="metric"><div class="label">Class Average</div><div class="value" id="classAverage">0%</div><div class="sub">Average marks as % of available marks</div></div>
-  </section>
-
-  <section class="two-col">
-    <div class="panel">
-      <h2>Subject-wise performance</h2>
-      <div id="subjectChart"><p class="muted small">Load sample data or upload a CSV file to view analysis.</p></div>
-    </div>
-    <div class="panel">
-      <h2>Learner support summary</h2>
-      <div class="metric" style="border:0;padding:0 0 14px"><div class="label">Slow learners (below 40% overall)</div><div class="value" id="slowCount">0</div></div>
-      <div class="metric" style="border:0;padding:0 0 14px"><div class="label">Average learners (40%–74.99%)</div><div class="value" id="averageCount">0</div></div>
-      <div class="metric" style="border:0;padding:0"><div class="label">Advanced learners (75% and above)</div><div class="value" id="advancedCount">0</div></div>
-      <p class="note">These are configurable example categories based on percentage, not formal institutional classifications. Use your college's approved criteria where applicable.</p>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2>Student-wise result</h2>
-    <div class="controls" style="margin-bottom:14px">
-      <div class="field"><label for="searchBox">Search roll number or name</label><input id="searchBox" placeholder="Search students..." /></div>
-      <div class="field" style="max-width:220px"><label for="statusFilter">Result filter</label><select id="statusFilter"><option value="all">All students</option><option value="pass">Passed all subjects</option><option value="fail">Failed one or more subjects</option><option value="slow">Slow learners</option><option value="average">Average learners</option><option value="advanced">Advanced learners</option></select></div>
-    </div>
-    <div class="table-wrap"><table id="resultTable"><thead></thead><tbody><tr><td class="muted">No data loaded yet.</td></tr></tbody></table></div>
-  </section>
-  <footer>Student Result Analysis · Free browser-based starter template · Verify all marks and institutional rules before official use.</footer>
-</main>
-<script>
-let students=[];
-let subjectNames=['Subject1','Subject2','Subject3','Subject4','Subject5'];
-const $=id=>document.getElementById(id);
-const sample=[
- {RollNo:'EE001',Name:'Aarav Patil',Subject1:18,Subject2:16,Subject3:21,Subject4:24,Subject5:19},
- {RollNo:'EE002',Name:'Diya Shah',Subject1:25,Subject2:22,Subject3:23,Subject4:26,Subject5:24},
- {RollNo:'EE003',Name:'Rohan Jadhav',Subject1:10,Subject2:14,Subject3:11,Subject4:16,Subject5:13},
- {RollNo:'EE004',Name:'Meera Joshi',Subject1:15,Subject2:13,Subject3:18,Subject4:17,Subject5:14},
- {RollNo:'EE005',Name:'Ishaan Kulkarni',Subject1:28,Subject2:27,Subject3:29,Subject4:26,Subject5:30},
- {RollNo:'EE006',Name:'Anaya More',Subject1:8,Subject2:11,Subject3:14,Subject4:9,Subject5:12},
- {RollNo:'EE007',Name:'Kabir Desai',Subject1:20,Subject2:19,Subject3:17,Subject4:22,Subject5:21},
- {RollNo:'EE008',Name:'Sana Shaikh',Subject1:13,Subject2:12,Subject3:15,Subject4:14,Subject5:16}
-];
-function parseCSV(text){
- const rows=[];let row=[],cell='',quoted=false;
- for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'&&quoted&&text[i+1]==='"'){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===','&&!quoted){row.push(cell.trim());cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell.trim());if(row.some(v=>v!==''))rows.push(row);row=[];cell=''}else cell+=c}
- row.push(cell.trim());if(row.some(v=>v!==''))rows.push(row);
- if(rows.length<2)throw Error('CSV must include a header row and at least one student.');
- const headers=rows[0].map(h=>h.replace(/^\uFEFF/,''));
- const rollIdx=headers.findIndex(h=>/roll|prn|student.?id|id/i.test(h));
- const nameIdx=headers.findIndex(h=>/name/i.test(h));
- const subjIdx=headers.map((h,i)=>({h,i})).filter(x=>x.i!==rollIdx&&x.i!==nameIdx);
- if(!subjIdx.length)throw Error('No subject columns found. Include subject marks after RollNo and Name.');
- subjectNames=subjIdx.map((x,i)=>x.h||('Subject'+(i+1)));
- return rows.slice(1).map((r,i)=>{const obj={RollNo:r[rollIdx>=0?rollIdx:0]||('Student'+(i+1)),Name:r[nameIdx>=0?nameIdx:1]||'Unnamed'};subjIdx.forEach((s,j)=>{const v=Number(r[s.i]);obj[subjectNames[j]]=r[s.i]===''||!Number.isFinite(v)?0:v});return obj});
-}
-function analyse(s){
- const vals=subjectNames.map(k=>Number(s[k])||0),total=vals.reduce((a,b)=>a+b,0),max=subjectNames.length*100;
- const pct=max?total/max*100:0,pass=vals.every(v=>v>=Number($('passmark').value||0));
- return {vals,total,pct,pass,category:pct<40?'slow':pct<75?'average':'advanced',failed:vals.filter(v=>v<Number($('passmark').value||0)).length};
-}
-function render(){
- const passmark=Number($('passmark').value||0),n=students.length;
- const records=students.map(s=>({s,a:analyse(s)}));
- const passed=records.filter(r=>r.a.pass).length,failed=n-passed;
- const avg=n?records.reduce((sum,r)=>sum+r.a.pct,0)/n:0;
- $('totalStudents').textContent=n;$('passPercent').textContent=(n?passed/n*100:0).toFixed(1)+'%';$('failPercent').textContent=(n?failed/n*100:0).toFixed(1)+'%';
- $('passCount').textContent=passed+' students passed all subjects';$('failCount').textContent=failed+' students with one or more failures';$('classAverage').textContent=avg.toFixed(1)+'%';
- $('slowCount').textContent=records.filter(r=>r.a.category==='slow').length;$('averageCount').textContent=records.filter(r=>r.a.category==='average').length;$('advancedCount').textContent=records.filter(r=>r.a.category==='advanced').length;
- $('subjectChart').innerHTML=subjectNames.map(k=>{const p=n?records.filter(r=>(Number(r.s[k])||0)>=passmark).length/n*100:0;return `<div class="chart-row"><div>${esc(k)}</div><div class="track"><div class="bar ${p<50?'low':p>=75?'good':''}" style="width:${p}%"></div></div><div>${p.toFixed(1)}%</div></div>`}).join('')||'<p class="muted">No subjects found.</p>';
- const q=$('searchBox').value.toLowerCase(),filter=$('statusFilter').value;
- const filtered=records.filter(({s,a})=>{const matches=(String(s.RollNo||'')+' '+String(s.Name||'')).toLowerCase().includes(q);let ok=filter==='all'||(filter==='pass'&&a.pass)||(filter==='fail'&&!a.pass)||filter===a.category;return matches&&ok});
- const thead=$('resultTable').querySelector('thead'),tbody=$('resultTable').querySelector('tbody');
- thead.innerHTML='<tr><th>Roll No.</th><th>Student Name</th>'+subjectNames.map(k=>`<th class="num">${esc(k)}</th>`).join('')+'<th class="num">Total</th><th class="num">Percentage</th><th>Result</th><th>Learner Category</th><th class="num">Failed Subjects</th></tr>';
- tbody.innerHTML=filtered.length?filtered.map(({s,a})=>`<tr><td>${esc(s.RollNo)}</td><td>${esc(s.Name)}</td>${subjectNames.map(k=>`<td class="num">${Number(s[k])||0}</td>`).join('')}<td class="num">${a.total}</td><td class="num">${a.pct.toFixed(1)}%</td><td><span class="pill ${a.pass?'pass':'fail'}">${a.pass?'PASS':'FAIL'}</span></td><td>${a.category==='slow'?'Slow learner':a.category==='average'?'Average learner':'Advanced learner'}</td><td class="num">${a.failed}</td></tr>`).join(''):'<tr><td colspan="20" class="muted">No matching students.</td></tr>';
-}
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function download(name,content,type='text/csv;charset=utf-8;'){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
-$('sampleBtn').onclick=()=>{subjectNames=['Subject1','Subject2','Subject3','Subject4','Subject5'];students=sample.map(x=>({...x}));render()};
-$('csvFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{students=parseCSV(await f.text());render()}catch(err){alert(err.message)}};
-$('passmark').oninput=render;$('searchBox').oninput=render;$('statusFilter').onchange=render;
-$('templateBtn').onclick=()=>download('student_marks_template.csv','RollNo,Name,Subject1,Subject2,Subject3,Subject4,Subject5\nEE001,Student Name,15,18,20,14,22\n');
-$('exportBtn').onclick=()=>{if(!students.length){alert('Load or upload data first.');return}const headers=['RollNo','Name',...subjectNames,'Total','Percentage','Result','LearnerCategory','FailedSubjects'];const lines=[headers.join(',')];students.forEach(s=>{const a=analyse(s);const vals=[s.RollNo,s.Name,...subjectNames.map(k=>s[k]),a.total,a.pct.toFixed(1)+'%',a.pass?'PASS':'FAIL',a.category,a.failed];lines.push(vals.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','))});download('analysed_student_results.csv',lines.join('\n'))};
-$('printBtn').onclick=()=>window.print();
-</script>
-<style>@media print{body{background:white}header{background:#17324d!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.panel,.metric{box-shadow:none;break-inside:avoid}button,input,select,.note{display:none!important}main{max-width:none;margin:0;padding:8px}.table-wrap{overflow:visible}table{font-size:9px;min-width:0}th,td{padding:5px}footer{display:none}}</style>
-</body></html>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Result Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Result Portal</title>
   <style>
+    * { box-sizing: border-box; }
     body {
+      margin: 0;
+      padding: 24px 14px;
       font-family: Arial, sans-serif;
-      margin: 25px;
-      background: #f3f6fb;
-      color: #222;
+      background: #eef3fb;
+      color: #1e293b;
     }
-    h1 { text-align: center; color: #174ea6; }
+    .container {
+      max-width: 760px;
+      margin: 30px auto;
+      background: white;
+      padding: 28px;
+      border-radius: 14px;
+      box-shadow: 0 5px 24px #00000012;
+    }
+    h1 { color: #174ea6; text-align: center; }
+    .subtitle { text-align: center; color: #64748b; }
+    .search { display: flex; gap: 10px; margin: 25px 0; }
     input {
-      width: 100%;
-      padding: 12px;
-      margin: 15px 0;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      min-width: 0;
+      flex: 1;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 16px;
     }
-    .table-wrap { overflow-x: auto; background: white; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 850px;
+    button {
+      border: 0;
+      background: #174ea6;
+      color: white;
+      padding: 13px 20px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 16px;
     }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
-    }
+    .result { display: none; }
+    .student { background: #eff6ff; padding: 16px; border-radius: 8px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    th, td { border: 1px solid #dbe3ee; padding: 11px; text-align: left; }
     th { background: #174ea6; color: white; }
-    tr:nth-child(even) { background: #f2f6fc; }
-    #status { margin: 12px 0; }
+    .message { text-align: center; color: #b91c1c; }
+    .total { font-size: 18px; font-weight: bold; margin-top: 18px; }
+    @media (max-width: 480px) {
+      .container { padding: 18px; }
+      .search { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
-  <h1>Student Result Analysis</h1>
-  <p>Search student records by name or roll number.</p>
-  <input id="search" type="text"
-         placeholder="Search student...">
-  <p id="status">Loading results...</p>
-  <div class="table-wrap">
-    <table>
-      <thead id="head"></thead>
-      <tbody id="body"></tbody>
-    </table>
-  </div>
+  <main class="container">
+    <h1>Student Result Portal</h1>
+    <p class="subtitle">Enter your roll number to view your result</p>
 
-  <script>
-    const csvFile = "./Unit%20test%20-1%20and%20MSE.csv";
+    <form class="search" id="searchForm">
+      <input id="roll" type="text" inputmode="numeric"
+             placeholder="Enter roll number" required>
+      <button type="submit">View Result</button>
+    </form>
 
-    function parseCSV(text) {
-      const rows = [];
-      let row = [], cell = "", quoted = false;
+    <p id="message" class="message" role="status"></p>
+    <section id="result" class="result" aria-live="polite"></section>
+  </main>
 
-      for (let i = 0; i < text.length; i++) {
-        const c = text[i];
+<script>
+const csvFile = "./Unit%20test%20-1%20and%20MSE.csv";
+let students = [];
+let headers = [];
 
-        if (c === '"' && quoted && text[i + 1] === '"') {
-          cell += '"';
-          i++;
-        } else if (c === '"') {
-          quoted = !quoted;
-        } else if (c === "," && !quoted) {
-          row.push(cell);
-          cell = "";
-        } else if ((c === "\n" || c === "\r") && !quoted) {
-          if (c === "\r" && text[i + 1] === "\n") i++;
-          row.push(cell);
-          if (row.some(v => v.trim() !== "")) rows.push(row);
-          row = [];
-          cell = "";
-        } else {
-          cell += c;
-        }
-      }
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = "", quoted = false;
 
-      if (cell || row.length) {
-        row.push(cell);
-        if (row.some(v => v.trim() !== "")) rows.push(row);
-      }
-      return rows;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (c === '"' && quoted && text[i + 1] === '"') {
+      cell += '"'; i++;
+    } else if (c === '"') {
+      quoted = !quoted;
+    } else if (c === "," && !quoted) {
+      row.push(cell.trim()); cell = "";
+    } else if ((c === "\n" || c === "\r") && !quoted) {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell.trim());
+      if (row.some(v => v !== "")) rows.push(row);
+      row = []; cell = "";
+    } else {
+      cell += c;
     }
+  }
+  if (cell || row.length) {
+    row.push(cell.trim());
+    if (row.some(v => v !== "")) rows.push(row);
+  }
+  return rows;
+}
 
-    fetch(csvFile)
-      .then(response => {
-        if (!response.ok) throw new Error("CSV file not found");
-        return response.text();
-      })
-      .then(text => {
-        const rows = parseCSV(text);
-        if (!rows.length) throw new Error("CSV file is empty");
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;",
+    '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
 
-        document.getElementById("head").innerHTML =
-          "<tr>" + rows[0].map(v =>
-            "<th>" + escapeHTML(v) + "</th>"
-          ).join("") + "</tr>";
+function showResult(roll) {
+  const message = document.getElementById("message");
+  const output = document.getElementById("result");
+  output.style.display = "none";
+  output.innerHTML = "";
 
-        const tbody = document.getElementById("body");
+  const student = students.find(s =>
+    (s[0] || "").trim().toLowerCase() === roll.trim().toLowerCase()
+  );
 
-        function render(filter = "") {
-          const matches = rows.slice(1).filter(row =>
-            row.join(" ").toLowerCase().includes(filter.toLowerCase())
-          );
+  if (!student) {
+    message.textContent = "No result found for this roll number. Please check and try again.";
+    return;
+  }
 
-          tbody.innerHTML = matches.map(row =>
-            "<tr>" + rows[0].map((_, i) =>
-              "<td>" + escapeHTML(row[i] || "") + "</td>"
-            ).join("") + "</tr>"
-          ).join("");
+  message.textContent = "";
+  const details = headers.map((header, i) =>
+    `<tr><th>${escapeHTML(header)}</th><td>${escapeHTML(student[i])}</td></tr>`
+  ).join("");
 
-          document.getElementById("status").textContent =
-            matches.length + " student records found";
-        }
+  output.innerHTML = `
+    <div class="student">
+      <h2>${escapeHTML(student[1] || "Student Result")}</h2>
+      <p><strong>Roll Number:</strong> ${escapeHTML(student[0])}</p>
+    </div>
+    <h3>Subject-wise Marks and Result</h3>
+    <div class="table-wrap">
+      <table><tbody>${details}</tbody></table>
+    </div>
+    <p class="subtitle">Please verify your marks with your institution.</p>
+  `;
+  output.style.display = "block";
+}
 
-        function escapeHTML(value) {
-          return String(value).replace(/[&<>"']/g, c => ({
-            "&": "&amp;", "<": "&lt;", ">": "&gt;",
-            '"': "&quot;", "'": "&#39;"
-          })[c]);
-        }
+fetch(csvFile)
+  .then(response => {
+    if (!response.ok) throw new Error("CSV file could not be loaded.");
+    return response.text();
+  })
+  .then(text => {
+    const rows = parseCSV(text);
+    if (rows.length < 2) throw new Error("No student records found.");
+    headers = rows[0];
+    students = rows.slice(1);
+    document.getElementById("message").textContent =
+      "Results are ready. Enter your roll number.";
+  })
+  .catch(() => {
+    document.getElementById("message").textContent =
+      "Unable to load results. Please check the CSV filename in GitHub.";
+  });
 
-        document.getElementById("search").addEventListener(
-          "input", e => render(e.target.value)
-        );
-        render();
-      })
-      .catch(error => {
-        document.getElementById("status").textContent =
-          "Could not load results. Check the CSV filename and location.";
-        console.error(error);
-      });
-  </script>
+document.getElementById("searchForm").addEventListener("submit", event => {
+  event.preventDefault();
+  if (!students.length) {
+    document.getElementById("message").textContent =
+      "Results are still loading. Please try again.";
+    return;
+  }
+  showResult(document.getElementById("roll").value);
+});
+</script>
 </body>
 </html>
