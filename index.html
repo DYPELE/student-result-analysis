@@ -136,3 +136,142 @@ $('printBtn').onclick=()=>window.print();
 </script>
 <style>@media print{body{background:white}header{background:#17324d!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.panel,.metric{box-shadow:none;break-inside:avoid}button,input,select,.note{display:none!important}main{max-width:none;margin:0;padding:8px}.table-wrap{overflow:visible}table{font-size:9px;min-width:0}th,td{padding:5px}footer{display:none}}</style>
 </body></html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Result Analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 25px;
+      background: #f3f6fb;
+      color: #222;
+    }
+    h1 { text-align: center; color: #174ea6; }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .table-wrap { overflow-x: auto; background: white; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th { background: #174ea6; color: white; }
+    tr:nth-child(even) { background: #f2f6fc; }
+    #status { margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <h1>Student Result Analysis</h1>
+  <p>Search student records by name or roll number.</p>
+  <input id="search" type="text"
+         placeholder="Search student...">
+  <p id="status">Loading results...</p>
+  <div class="table-wrap">
+    <table>
+      <thead id="head"></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const csvFile = "./Unit%20test%20-1%20and%20MSE.csv";
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], cell = "", quoted = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+
+        if (c === '"' && quoted && text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else if (c === '"') {
+          quoted = !quoted;
+        } else if (c === "," && !quoted) {
+          row.push(cell);
+          cell = "";
+        } else if ((c === "\n" || c === "\r") && !quoted) {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(cell);
+          if (row.some(v => v.trim() !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += c;
+        }
+      }
+
+      if (cell || row.length) {
+        row.push(cell);
+        if (row.some(v => v.trim() !== "")) rows.push(row);
+      }
+      return rows;
+    }
+
+    fetch(csvFile)
+      .then(response => {
+        if (!response.ok) throw new Error("CSV file not found");
+        return response.text();
+      })
+      .then(text => {
+        const rows = parseCSV(text);
+        if (!rows.length) throw new Error("CSV file is empty");
+
+        document.getElementById("head").innerHTML =
+          "<tr>" + rows[0].map(v =>
+            "<th>" + escapeHTML(v) + "</th>"
+          ).join("") + "</tr>";
+
+        const tbody = document.getElementById("body");
+
+        function render(filter = "") {
+          const matches = rows.slice(1).filter(row =>
+            row.join(" ").toLowerCase().includes(filter.toLowerCase())
+          );
+
+          tbody.innerHTML = matches.map(row =>
+            "<tr>" + rows[0].map((_, i) =>
+              "<td>" + escapeHTML(row[i] || "") + "</td>"
+            ).join("") + "</tr>"
+          ).join("");
+
+          document.getElementById("status").textContent =
+            matches.length + " student records found";
+        }
+
+        function escapeHTML(value) {
+          return String(value).replace(/[&<>"']/g, c => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;",
+            '"': "&quot;", "'": "&#39;"
+          })[c]);
+        }
+
+        document.getElementById("search").addEventListener(
+          "input", e => render(e.target.value)
+        );
+        render();
+      })
+      .catch(error => {
+        document.getElementById("status").textContent =
+          "Could not load results. Check the CSV filename and location.";
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
