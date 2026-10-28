@@ -1,6 +1,6 @@
-PRN No,Name of Student,FACTS,,,PQH,,,CMPS,,,SAP,,,EV,,,"Total 
-Marks",,Percentage of Result,Remark
-,,Max,Min ,Obtained,Max,Min ,Obtained,Max,Min ,Obtained,Max,Min ,Obtained,Max,Min ,Obtained,Out of,Obtained,,
+PRN No,Name of Student,FACTS(30),Min (12),Obtained,"PQH
+(30)",Min (12),Obtained,CMPS(30),Min (12),Obtained,SAP(30),Min (12),Obtained,EV(30),Min (12),Obtained,"Total 
+Marks(150)",Obtained,Percentage of Result,Remark
 2023055193,Barkale Sudesh Krushnat,30,12,17,30,12,7,30,12,8,30,12,5,30,12,13,150,37,24.66666667,Fail
 2023062455,Bhagat Pratiksha Vijay,30,12,30,30,12,25,30,12,27,30,12,AB,30,12,ab,150,82,54.66666667,Absent
 2024069502,Bhingardeve Diksha Kisan,30,12,25,30,12,18,30,12,14,30,12,27,30,12,24,150,84,56,Pass
