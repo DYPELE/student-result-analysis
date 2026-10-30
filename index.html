@@ -70,7 +70,6 @@
       margin-bottom: 8px;
     }
 
-    select,
     input {
       width: 100%;
       padding: 12px;
@@ -80,8 +79,7 @@
       background: white;
     }
 
-    input:focus,
-    select:focus {
+    input:focus {
       outline: 2px solid #93c5fd;
       border-color: #2563eb;
     }
@@ -100,6 +98,11 @@
 
     button:hover {
       background: #0f2f55;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     #message {
@@ -159,8 +162,7 @@
       min-width: 320px;
     }
 
-    th,
-    td {
+    th, td {
       border: 1px solid #cbd5e1;
       padding: 11px;
       text-align: left;
@@ -214,6 +216,7 @@
 </head>
 
 <body>
+
   <main class="container">
 
     <header>
@@ -230,9 +233,16 @@
 
       <p class="subtitle">Academic Assessment Results</p>
     </header>
- <input type="hidden" id="resultType" value="prn-ut1">
-    
-               <label for="studentNumber" id="numberLabel">
+
+    <section>
+
+      <!-- Direct PRN search without class selection -->
+
+      <input type="hidden" id="resultType" value="prn-ut1">
+
+      <div class="form-group">
+
+        <label for="studentNumber" id="numberLabel">
           Enter PRN Number
         </label>
 
@@ -242,19 +252,27 @@
           placeholder="Enter your PRN Number"
           autocomplete="off"
         >
+
       </div>
 
-      <button type="button" id="searchButton" onclick="searchResult()">
+      <button
+        type="button"
+        id="searchButton"
+        onclick="searchResult()"
+      >
         View Result
       </button>
 
       <div id="message" role="status" aria-live="polite"></div>
+
     </section>
 
     <section id="resultSection" hidden>
+
       <h2 class="result-heading">Student Result</h2>
 
       <div class="result-info">
+
         <div class="info-card">
           <strong>Class</strong>
           <span id="classInfo"></span>
@@ -271,9 +289,10 @@
         </div>
 
         <div class="info-card">
-          <strong>Search Number</strong>
+          <strong>PRN Number</strong>
           <span id="studentInfo"></span>
         </div>
+
       </div>
 
       <div class="table-wrapper">
@@ -281,6 +300,7 @@
           <tbody id="resultTable"></tbody>
         </table>
       </div>
+
     </section>
 
     <footer class="footer">
@@ -292,31 +312,47 @@
   </main>
 
   <script>
-    /*
-      IMPORTANT:
-      These CSV files must be present in the same GitHub repository
-      as this index.html file, or you must update their paths below.
-    */
+
+    // ==========================================
+    // 1. CSV FILE CONFIGURATION
+    // ==========================================
 
     const resultFiles = {
-      "prn-ut1": {
+
+      "btech": {
         file: "./Btech_Unit_test_-1_Result_with_PRN.csv",
         className: "B.Tech",
         assessment: "Unit Test 1",
         semester: "VII",
         searchType: "PRN",
-        searchHeaders: ["prn", "prn number", "prn no", "permanent registration number"]
+        searchHeaders: [
+          "prn",
+          "prn number",
+          "prn no",
+          "permanent registration number"
+        ]
       },
 
-      "prn-mse": {
-        file: "./Unit test -1 and MSE.csv",
+      "ty": {
+        file: "./Unit%20test%20-1%20and%20MSE.csv",
         className: "TY",
-        assessment: "MSE",
+        assessment: "Unit Test 1 / MSE",
         semester: "V",
         searchType: "PRN",
-        searchHeaders: ["prn", "prn number", "prn no", "permanent registration number"]
+        searchHeaders: [
+          "prn",
+          "prn number",
+          "prn no",
+          "permanent registration number"
+        ]
       }
+
     };
+
+
+    // ==========================================
+    // 2. HTML ELEMENTS
+    // ==========================================
 
     const resultType = document.getElementById("resultType");
     const studentNumber = document.getElementById("studentNumber");
@@ -325,38 +361,56 @@
     const resultSection = document.getElementById("resultSection");
     const searchButton = document.getElementById("searchButton");
 
-    resultType.addEventListener("change", function () {
-      const config = resultFiles[this.value];
 
-      numberLabel.textContent = "Enter " + config.searchType;
-      studentNumber.placeholder = "Enter your " + config.searchType;
-      studentNumber.value = "";
+    // ==========================================
+    // 3. ENTER KEY SEARCH
+    // ==========================================
 
-      clearResult();
-    });
+    studentNumber.addEventListener("keydown", function(event) {
 
-    studentNumber.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
         searchResult();
       }
+
     });
 
+
+    // ==========================================
+    // 4. SHOW MESSAGE
+    // ==========================================
+
     function showMessage(text, type) {
+
       message.textContent = text;
       message.className = type;
       message.style.display = "block";
+
     }
 
+
+    // ==========================================
+    // 5. CLEAR PREVIOUS RESULT
+    // ==========================================
+
     function clearResult() {
+
       message.textContent = "";
       message.className = "";
       message.style.display = "none";
+
       resultSection.hidden = true;
+
       document.getElementById("resultTable").innerHTML = "";
+
     }
 
-    // Parse CSV rows, including values containing commas or quotation marks.
+
+    // ==========================================
+    // 6. CSV PARSER
+    // ==========================================
+
     function parseCSV(text) {
+
       const rows = [];
       let row = [];
       let value = "";
@@ -365,18 +419,29 @@
       text = text.replace(/^\uFEFF/, "");
 
       for (let i = 0; i < text.length; i++) {
+
         const char = text[i];
         const nextChar = text[i + 1];
 
         if (char === '"' && insideQuotes && nextChar === '"') {
+
           value += '"';
           i++;
+
         } else if (char === '"') {
+
           insideQuotes = !insideQuotes;
+
         } else if (char === "," && !insideQuotes) {
+
           row.push(value.trim());
           value = "";
-        } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+
+        } else if (
+          (char === "\n" || char === "\r") &&
+          !insideQuotes
+        ) {
+
           if (char === "\r" && nextChar === "\n") {
             i++;
           }
@@ -389,9 +454,13 @@
 
           row = [];
           value = "";
+
         } else {
+
           value += char;
+
         }
+
       }
 
       row.push(value.trim());
@@ -401,146 +470,351 @@
       }
 
       return rows;
+
     }
 
+
+    // ==========================================
+    // 7. NORMALIZE CSV HEADINGS
+    // ==========================================
+
     function normalizeHeader(value) {
+
       return String(value || "")
         .trim()
         .toLowerCase()
         .replace(/[_-]/g, " ")
         .replace(/\s+/g, " ");
+
     }
 
+
+    // ==========================================
+    // 8. FIND PRN COLUMN
+    // ==========================================
+
     function findColumn(headers, possibleNames) {
+
       const normalized = headers.map(normalizeHeader);
 
       for (const name of possibleNames) {
-        const index = normalized.indexOf(normalizeHeader(name));
+
+        const index = normalized.indexOf(
+          normalizeHeader(name)
+        );
 
         if (index !== -1) {
           return index;
         }
+
       }
 
       return -1;
+
     }
 
+
+    // ==========================================
+    // 9. SEARCH BOTH CSV FILES BY PRN
+    // ==========================================
+
     async function searchResult() {
+
       clearResult();
 
       const searchValue = studentNumber.value.trim();
 
       if (!searchValue) {
-        showMessage("Please enter your " + resultFiles[resultType.value].searchType + ".", "error");
+
+        showMessage(
+          "Please enter your PRN Number.",
+          "error"
+        );
+
         studentNumber.focus();
         return;
-      }
 
-      const config = resultFiles[resultType.value];
+      }
 
       searchButton.disabled = true;
       searchButton.textContent = "Searching...";
 
+      let fileLoaded = false;
+
       try {
-        const response = await fetch(config.file + "?v=" + Date.now(), {
-          cache: "no-store"
-        });
 
-        if (!response.ok) {
-          throw new Error(
-            "Could not load the result CSV file. Please check its filename and GitHub repository."
-          );
+        // Search B.Tech and TY files automatically
+
+        for (const config of Object.values(resultFiles)) {
+
+          try {
+
+            const response = await fetch(
+              config.file + "?v=" + Date.now(),
+              { cache: "no-store" }
+            );
+
+            if (!response.ok) {
+              continue;
+            }
+
+            fileLoaded = true;
+
+            const csvText = await response.text();
+            const rows = parseCSV(csvText);
+
+            if (rows.length < 2) {
+              continue;
+            }
+
+
+            // Check whether CSV has two header rows
+
+            const topHeaders = rows[0];
+            const secondRow = rows[1] || [];
+
+            const isSecondHeader = secondRow.some(cell => {
+
+              return [
+                "max",
+                "min",
+                "obtained",
+                "maximum",
+                "minimum"
+              ].includes(normalizeHeader(cell));
+
+            });
+
+
+            let headers;
+            let dataRows;
+
+
+            // Handle two-header-row CSV
+
+            if (isSecondHeader) {
+
+              headers = [];
+
+              let currentSubject = "";
+
+              const length = Math.max(
+                topHeaders.length,
+                secondRow.length
+              );
+
+              for (let i = 0; i < length; i++) {
+
+                const main = String(
+                  topHeaders[i] || ""
+                ).trim();
+
+                const sub = String(
+                  secondRow[i] || ""
+                ).trim();
+
+                if (main) {
+                  currentSubject = main;
+                }
+
+                if (i === 0) {
+
+                  headers.push(main || "PRN No");
+
+                } else if (i === 1) {
+
+                  headers.push(main || "Name of Student");
+
+                } else {
+
+                  headers.push(
+                    [currentSubject, sub]
+                      .filter(Boolean)
+                      .join(" ")
+                  );
+
+                }
+
+              }
+
+              // Skip both header rows
+              dataRows = rows.slice(2);
+
+            } else {
+
+              // Handle normal one-header-row CSV
+
+              headers = topHeaders;
+              dataRows = rows.slice(1);
+
+            }
+
+
+            // Find PRN column
+
+            let searchColumn = findColumn(
+              headers,
+              config.searchHeaders
+            );
+
+            // Fallback: PRN No is the first column
+            if (
+              searchColumn === -1 &&
+              normalizeHeader(headers[0]) === "prn no"
+            ) {
+
+              searchColumn = 0;
+
+            }
+
+            if (searchColumn === -1) {
+              continue;
+            }
+
+
+            // Find student by PRN number
+
+            const foundRow = dataRows.find(row => {
+
+              const csvPRN = String(
+                row[searchColumn] || ""
+              ).trim();
+
+              return csvPRN === searchValue;
+
+            });
+
+
+            // If student is found
+
+            if (foundRow) {
+
+              displayResult(
+                headers,
+                foundRow,
+                config,
+                searchValue
+              );
+
+              showMessage(
+                "Result found successfully!",
+                "success"
+              );
+
+              return;
+
+            }
+
+          } catch (fileError) {
+
+            console.error(
+              "Error reading " + config.className + " CSV:",
+              fileError
+            );
+
+          }
+
         }
 
-        const csvText = await response.text();
-        const rows = parseCSV(csvText);
 
-        if (rows.length < 2) {
-          throw new Error("The result file is empty or does not contain student records.");
-        }
+        // No matching PRN found
 
-        /*
-          Assumption: the first row contains column headings.
-          The selected search column is detected using the headings.
-        */
-        const headers = rows[0];
-        const dataRows = rows.slice(1);
+        if (!fileLoaded) {
 
-        let searchColumn = findColumn(headers, config.searchHeaders);
-
-        // For the existing file, fall back to the first column if no roll
-        // number heading is found. For the PRN file, require a PRN heading
-        // so that the wrong column is not searched accidentally.
-        if (searchColumn === -1 && resultType.value === "prn-mse") {
-          searchColumn = 0;
-        }
-
-        if (searchColumn === -1) {
-          throw new Error(
-            "Could not identify the " + config.searchType +
-            " column. Check the first row of your CSV file for a suitable heading."
-          );
-        }
-
-        const foundRow = dataRows.find(row =>
-          String(row[searchColumn] || "").trim().toLowerCase() ===
-          searchValue.toLowerCase()
-        );
-
-        if (!foundRow) {
           showMessage(
-            "No result found for this " + config.searchType +
-            ". Please check the number and try again.",
+            "Unable to load result CSV files. Please check filenames.",
             "error"
           );
-          return;
+
+        } else {
+
+          showMessage(
+            "No result found for this PRN number. Please check your PRN.",
+            "error"
+          );
+
         }
 
-        displayResult(headers, foundRow, config, searchValue);
-
-        showMessage("Result found successfully.", "success");
-
       } catch (error) {
+
         showMessage(
           error.message || "Something went wrong while loading the result.",
           "error"
         );
+
       } finally {
+
         searchButton.disabled = false;
         searchButton.textContent = "View Result";
+
       }
+
     }
 
+
+    // ==========================================
+    // 10. DISPLAY STUDENT RESULT
+    // ==========================================
+
     function displayResult(headers, row, config, searchValue) {
-      document.getElementById("classInfo").textContent = config.className;
-      document.getElementById("assessmentInfo").textContent = config.assessment;
-      document.getElementById("semesterInfo").textContent = config.semester;
-      document.getElementById("studentInfo").textContent = searchValue;
+
+      document.getElementById("classInfo").textContent =
+        config.className;
+
+      document.getElementById("assessmentInfo").textContent =
+        config.assessment;
+
+      document.getElementById("semesterInfo").textContent =
+        config.semester;
+
+      document.getElementById("studentInfo").textContent =
+        searchValue;
+
 
       const tableBody = document.getElementById("resultTable");
+
       tableBody.innerHTML = "";
 
+
       headers.forEach((header, index) => {
+
         const tr = document.createElement("tr");
+
         const th = document.createElement("th");
+
         const td = document.createElement("td");
 
-        th.textContent = header || ("Column " + (index + 1));
-        td.textContent = row[index] === undefined || row[index] === ""
-          ? "—"
-          : row[index];
+
+        th.textContent =
+          header || ("Column " + (index + 1));
+
+
+        td.textContent =
+          row[index] === undefined || row[index] === ""
+            ? "—"
+            : row[index];
+
 
         tr.appendChild(th);
         tr.appendChild(td);
+
         tableBody.appendChild(tr);
+
       });
 
+
       resultSection.hidden = false;
+
       resultSection.scrollIntoView({
+
         behavior: "smooth",
         block: "start"
+
       });
+
     }
+
   </script>
+
 </body>
 </html>
