@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Result Portal | Electrical Engineering</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; background: #f1f5f9; color: #1e293b; }
+    .container { max-width: 900px; margin: 25px auto; padding: 28px; background: white; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,.10); }
+    header { text-align: center; border-bottom: 3px solid #174174; padding-bottom: 20px; margin-bottom: 25px; }
+    .college-name { color: #174174; font-size: 23px; line-height: 1.5; margin: 0 0 12px; }
+    .department { color: #b45309; font-size: 22px; margin: 8px 0; }
+    .portal-title { color: #174174; font-size: 27px; margin: 15px 0 8px; }
+    .subtitle { color: #64748b; margin: 0; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-weight: bold; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-size: 16px; background: white; }
+    input:focus { outline: 2px solid #93c5fd; border-color: #2563eb; }
+    button { width: 100%; padding: 13px; background: #174174; color: white; border: none; border-radius: 7px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #0f2f55; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    #message { margin-top: 20px; padding: 13px; border-radius: 7px; display: none; line-height: 1.5; }
+    .error { display: block !important; color: #991b1b; background: #fee2e2; }
+    .success { display: block !important; color: #166534; background: #dcfce7; }
+    .result-heading { margin-top: 28px; color: #174174; }
+    .result-info { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 18px 0; }
+    .info-card { padding: 12px; background: #f1f5f9; border-radius: 7px; overflow-wrap: anywhere; }
+    .info-card strong { display: block; margin-bottom: 6px; color: #475569; }
+    .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; min-width: 320px; }
+    th, td { border: 1px solid #cbd5e1; padding: 11px; text-align: left; }
+    th { background: #174174; color: white; width: 45%; }
+    td { overflow-wrap: anywhere; }
+    .footer { text-align: center; color: #64748b; font-size: 13px; margin-top: 28px; line-height: 1.6; }
+    @media (max-width: 520px) {
+      body { padding: 8px; }
+      .container { padding: 18px; margin: 10px auto; }
+      .college-name { font-size: 18px; }
+      .department { font-size: 19px; }
+      .portal-title { font-size: 23px; }
+      .result-info { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<main class="container">
+  <header>
+    <h2 class="college-name">Dr. D. Y. Patil Pratishthan's College of Engineering,<br>Salokhenagar, Kolhapur</h2>
+    <h1 class="department">Department of Electrical Engineering</h1>
+    <h2 class="portal-title">Student Result Portal</h2>
+    <p class="subtitle">Academic Assessment Results</p>
+  </header>
+
+  <section>
+    <div class="form-group">
+      <label for="studentNumber">Enter PRN Number</label>
+      <input type="text" id="studentNumber" placeholder="Enter your PRN Number" autocomplete="off" inputmode="numeric">
+    </div>
+    <button type="button" id="searchButton">View Result</button>
+    <div id="message" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="resultSection" hidden>
+    <h2 class="result-heading">Student Result</h2>
+    <div class="result-info">
+      <div class="info-card"><strong>Class</strong><span id="classInfo"></span></div>
+      <div class="info-card"><strong>Assessment</strong><span id="assessmentInfo"></span></div>
+      <div class="info-card"><strong>Semester</strong><span id="semesterInfo"></span></div>
+      <div class="info-card"><strong>PRN Number</strong><span id="studentInfo"></span></div>
+    </div>
+    <div class="table-wrapper"><table><tbody id="resultTable"></tbody></table></div>
+  </section>
+
+  <footer class="footer">
+    Department of Electrical Engineering<br>
+    Dr. D. Y. Patil Pratishthan's College of Engineering, Salokhenagar, Kolhapur
+  </footer>
+</main>
+
+<script>
+  // Keep these filenames exactly the same as the files in your GitHub repository.
+  const resultFiles = [
+    {
+      file: "./Btech_Unit_test_-1_Result_with_PRN.csv",
+      className: "B.Tech",
+      assessment: "Unit Test 1",
+      semester: "VII"
+    },
+    {
+      file: "./Unit%20test%20-1%20and%20MSE.csv",
+      className: "TY",
+      assessment: "Unit Test 1 / MSE",
+      semester: "V"
+    }
+  ];
+
+  const studentNumber = document.getElementById("studentNumber");
+  const searchButton = document.getElementById("searchButton");
+  const message = document.getElementById("message");
+  const resultSection = document.getElementById("resultSection");
+  const resultTable = document.getElementById("resultTable");
+
+  searchButton.addEventListener("click", searchResult);
+  studentNumber.addEventListener("keydown", event => {
+    if (event.key === "Enter") searchResult();
+  });
+
+  function normalizeHeader(value) {
+    return String(value || "")
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .toLowerCase()
+      .replace(/[_-]/g, " ")
+      .replace(/\s+/g, " ");
+  }
+
+  // Normalize PRNs to avoid mismatches caused by spaces or Excel's trailing .0.
+  function normalizePRN(value) {
+    return String(value ?? "")
+      .trim()
+      .replace(/^['"]|['"]$/g, "")
+      .replace(/\.0$/, "")
+      .replace(/\s+/g, "");
+  }
+
+  // CSV parser supports commas, quoted cells and line breaks inside quoted cells.
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let value = "";
+    let insideQuotes = false;
+
+    text = text.replace(/^\uFEFF/, "");
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const next = text[i + 1];
+
+      if (ch === '"' && insideQuotes && next === '"') {
+        value += '"';
+        i++;
+      } else if (ch === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (ch === "," && !insideQuotes) {
+        row.push(value.trim());
+        value = "";
+      } else if ((ch === "\n" || ch === "\r") && !insideQuotes) {
+        if (ch === "\r" && next === "\n") i++;
+        row.push(value.trim());
+        if (row.some(cell => cell !== "")) rows.push(row);
+        row = [];
+        value = "";
+      } else {
+        value += ch;
+      }
+    }
+
+    row.push(value.trim());
+    if (row.some(cell => cell !== "")) rows.push(row);
+    return rows;
+  }
+
+  function showMessage(text, type) {
+    message.textContent = text;
+    message.className = type;
+    message.style.display = "block";
+  }
+
+  function clearResult() {
+    message.textContent = "";
+    message.className = "";
+    message.style.display = "none";
+    resultSection.hidden = true;
+    resultTable.innerHTML = "";
+  }
+
+  async function searchResult() {
+    clearResult();
+    const enteredPRN = normalizePRN(studentNumber.value);
+
+    if (!enteredPRN) {
+      showMessage("Please enter your PRN Number.", "error");
+      studentNumber.focus();
+      return;
+    }
+
+    searchButton.disabled = true;
+    searchButton.textContent = "Searching...";
+
+    const loadErrors = [];
+
+    try {
+      for (const config of resultFiles) {
+        try {
+          const response = await fetch(config.file, { cache: "no-store" });
+
+          if (!response.ok) {
+            loadErrors.push(config.className + ": HTTP " + response.status);
+            continue;
+          }
+
+          const rows = parseCSV(await response.text());
+          if (rows.length < 2) {
+            loadErrors.push(config.className + ": CSV is empty or has no student rows");
+            continue;
+          }
+
+          // Both supplied CSV files use one header row. Find the PRN column by heading.
+          const headers = rows[0];
+          const prnColumn = headers.findIndex(h => {
+            const name = normalizeHeader(h);
+            return ["prn", "prn no", "prn number", "permanent registration number"].includes(name);
+          });
+
+          if (prnColumn === -1) {
+            loadErrors.push(config.className + ": PRN No column was not found");
+            continue;
+          }
+
+          const dataRows = rows.slice(1);
+          const foundRow = dataRows.find(row =>
+            normalizePRN(row[prnColumn]) === enteredPRN
+          );
+
+          if (foundRow) {
+            displayResult(headers, foundRow, config, enteredPRN);
+            showMessage("Result found successfully!", "success");
+            return;
+          }
+        } catch (error) {
+          console.error("Problem loading " + config.className + " CSV:", error);
+          loadErrors.push(config.className + ": " + error.message);
+        }
+      }
+
+      if (loadErrors.length === resultFiles.length) {
+        showMessage("Could not read the result CSV files. Check that both CSV files are uploaded to the same GitHub folder as index.html and that their filenames match the code. Details: " + loadErrors.join(" | "), "error");
+      } else {
+        showMessage("No result found for PRN " + enteredPRN + ". Please check the number. If the PRN cell is blank in the CSV, that student cannot be searched until the PRN is entered in the CSV.", "error");
+      }
+    } finally {
+      searchButton.disabled = false;
+      searchButton.textContent = "View Result";
+    }
+  }
+
+  function displayResult(headers, row, config, prn) {
+    document.getElementById("classInfo").textContent = config.className;
+    document.getElementById("assessmentInfo").textContent = config.assessment;
+    document.getElementById("semesterInfo").textContent = config.semester;
+    document.getElementById("studentInfo").textContent = prn;
+
+    resultTable.innerHTML = "";
+    headers.forEach((header, index) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      const td = document.createElement("td");
+      th.textContent = header || ("Column " + (index + 1));
+      const cellValue = row[index];
+      td.textContent = cellValue === undefined || cellValue === "" ? "—" : cellValue;
+      tr.appendChild(th);
+      tr.appendChild(td);
+      resultTable.appendChild(tr);
+    });
+
+    resultSection.hidden = false;
+    resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+</script>
+</body>
+</html>
