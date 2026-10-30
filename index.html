@@ -1,820 +1,272 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Student Result Portal | Electrical Engineering</title>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f1f5f9;
-      color: #1e293b;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 25px auto;
-      padding: 28px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.10);
-    }
-
-    header {
-      text-align: center;
-      border-bottom: 3px solid #174174;
-      padding-bottom: 20px;
-      margin-bottom: 25px;
-    }
-
-    .college-name {
-      color: #174174;
-      font-size: 23px;
-      line-height: 1.5;
-      margin: 0 0 12px;
-    }
-
-    .department {
-      color: #b45309;
-      font-size: 22px;
-      margin: 8px 0;
-    }
-
-    .portal-title {
-      color: #174174;
-      font-size: 27px;
-      margin: 15px 0 8px;
-    }
-
-    .subtitle {
-      color: #64748b;
-      margin: 0;
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 7px;
-      font-size: 16px;
-      background: white;
-    }
-
-    input:focus {
-      outline: 2px solid #93c5fd;
-      border-color: #2563eb;
-    }
-
-    button {
-      width: 100%;
-      padding: 13px;
-      background: #174174;
-      color: white;
-      border: none;
-      border-radius: 7px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0f2f55;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    #message {
-      margin-top: 20px;
-      padding: 13px;
-      border-radius: 7px;
-      display: none;
-      line-height: 1.5;
-    }
-
-    .error {
-      display: block !important;
-      color: #991b1b;
-      background: #fee2e2;
-    }
-
-    .success {
-      display: block !important;
-      color: #166534;
-      background: #dcfce7;
-    }
-
-    .result-heading {
-      margin-top: 28px;
-      color: #174174;
-    }
-
-    .result-info {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin: 18px 0;
-    }
-
-    .info-card {
-      padding: 12px;
-      background: #f1f5f9;
-      border-radius: 7px;
-      overflow-wrap: anywhere;
-    }
-
-    .info-card strong {
-      display: block;
-      margin-bottom: 6px;
-      color: #475569;
-    }
-
-    .table-wrapper {
-      width: 100%;
-      overflow-x: auto;
-      margin-top: 15px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 320px;
-    }
-
-    th, td {
-      border: 1px solid #cbd5e1;
-      padding: 11px;
-      text-align: left;
-    }
-
-    th {
-      background: #174174;
-      color: white;
-      width: 45%;
-    }
-
-    td {
-      overflow-wrap: anywhere;
-    }
-
-    .footer {
-      text-align: center;
-      color: #64748b;
-      font-size: 13px;
-      margin-top: 28px;
-      line-height: 1.6;
-    }
-
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; background: #f1f5f9; color: #1e293b; }
+    .container { max-width: 900px; margin: 25px auto; padding: 28px; background: white; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,.10); }
+    header { text-align: center; border-bottom: 3px solid #174174; padding-bottom: 20px; margin-bottom: 25px; }
+    .college-name { color: #174174; font-size: 23px; line-height: 1.5; margin: 0 0 12px; }
+    .department { color: #b45309; font-size: 22px; margin: 8px 0; }
+    .portal-title { color: #174174; font-size: 27px; margin: 15px 0 8px; }
+    .subtitle { color: #64748b; margin: 0; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-weight: bold; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-size: 16px; background: white; }
+    input:focus { outline: 2px solid #93c5fd; border-color: #2563eb; }
+    button { width: 100%; padding: 13px; background: #174174; color: white; border: none; border-radius: 7px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #0f2f55; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    #message { margin-top: 20px; padding: 13px; border-radius: 7px; display: none; line-height: 1.5; }
+    .error { display: block !important; color: #991b1b; background: #fee2e2; }
+    .success { display: block !important; color: #166534; background: #dcfce7; }
+    .result-heading { margin-top: 28px; color: #174174; }
+    .result-info { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 18px 0; }
+    .info-card { padding: 12px; background: #f1f5f9; border-radius: 7px; overflow-wrap: anywhere; }
+    .info-card strong { display: block; margin-bottom: 6px; color: #475569; }
+    .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; min-width: 320px; }
+    th, td { border: 1px solid #cbd5e1; padding: 11px; text-align: left; }
+    th { background: #174174; color: white; width: 45%; }
+    td { overflow-wrap: anywhere; }
+    .footer { text-align: center; color: #64748b; font-size: 13px; margin-top: 28px; line-height: 1.6; }
     @media (max-width: 520px) {
-      body {
-        padding: 8px;
-      }
-
-      .container {
-        padding: 18px;
-        margin: 10px auto;
-      }
-
-      .college-name {
-        font-size: 18px;
-      }
-
-      .department {
-        font-size: 19px;
-      }
-
-      .portal-title {
-        font-size: 23px;
-      }
-
-      .result-info {
-        grid-template-columns: 1fr;
-      }
+      body { padding: 8px; }
+      .container { padding: 18px; margin: 10px auto; }
+      .college-name { font-size: 18px; }
+      .department { font-size: 19px; }
+      .portal-title { font-size: 23px; }
+      .result-info { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-
 <body>
+<main class="container">
+  <header>
+    <h2 class="college-name">Dr. D. Y. Patil Pratishthan's College of Engineering,<br>Salokhenagar, Kolhapur</h2>
+    <h1 class="department">Department of Electrical Engineering</h1>
+    <h2 class="portal-title">Student Result Portal</h2>
+    <p class="subtitle">Academic Assessment Results</p>
+  </header>
 
-  <main class="container">
+  <section>
+    <div class="form-group">
+      <label for="studentNumber">Enter PRN Number</label>
+      <input type="text" id="studentNumber" placeholder="Enter your PRN Number" autocomplete="off" inputmode="numeric">
+    </div>
+    <button type="button" id="searchButton">View Result</button>
+    <div id="message" role="status" aria-live="polite"></div>
+  </section>
 
-    <header>
-      <h2 class="college-name">
-        Dr. D. Y. Patil Pratishthan's College of Engineering,
-        Salokhenagar, Kolhapur
-      </h2>
+  <section id="resultSection" hidden>
+    <h2 class="result-heading">Student Result</h2>
+    <div class="result-info">
+      <div class="info-card"><strong>Class</strong><span id="classInfo"></span></div>
+      <div class="info-card"><strong>Assessment</strong><span id="assessmentInfo"></span></div>
+      <div class="info-card"><strong>Semester</strong><span id="semesterInfo"></span></div>
+      <div class="info-card"><strong>PRN Number</strong><span id="studentInfo"></span></div>
+    </div>
+    <div class="table-wrapper"><table><tbody id="resultTable"></tbody></table></div>
+  </section>
 
-      <h1 class="department">
-        Department of Electrical Engineering
-      </h1>
+  <footer class="footer">
+    Department of Electrical Engineering<br>
+    Dr. D. Y. Patil Pratishthan's College of Engineering, Salokhenagar, Kolhapur
+  </footer>
+</main>
 
-      <h2 class="portal-title">Student Result Portal</h2>
+<script>
+  // Keep these filenames exactly the same as the files in your GitHub repository.
+  const resultFiles = [
+    {
+      file: "./Btech_Unit_test_-1_Result_with_PRN.csv",
+      className: "B.Tech",
+      assessment: "Unit Test 1",
+      semester: "VII"
+    },
+    {
+      file: "./Unit%20test%20-1%20and%20MSE.csv",
+      className: "TY",
+      assessment: "Unit Test 1 / MSE",
+      semester: "V"
+    }
+  ];
 
-      <p class="subtitle">Academic Assessment Results</p>
-    </header>
+  const studentNumber = document.getElementById("studentNumber");
+  const searchButton = document.getElementById("searchButton");
+  const message = document.getElementById("message");
+  const resultSection = document.getElementById("resultSection");
+  const resultTable = document.getElementById("resultTable");
 
-    <section>
+  searchButton.addEventListener("click", searchResult);
+  studentNumber.addEventListener("keydown", event => {
+    if (event.key === "Enter") searchResult();
+  });
 
-      <!-- Direct PRN search without class selection -->
+  function normalizeHeader(value) {
+    return String(value || "")
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .toLowerCase()
+      .replace(/[_-]/g, " ")
+      .replace(/\s+/g, " ");
+  }
 
-      <input type="hidden" id="resultType" value="prn-ut1">
+  // Normalize PRNs to avoid mismatches caused by spaces or Excel's trailing .0.
+  function normalizePRN(value) {
+    return String(value ?? "")
+      .trim()
+      .replace(/^['"]|['"]$/g, "")
+      .replace(/\.0$/, "")
+      .replace(/\s+/g, "");
+  }
 
-      <div class="form-group">
+  // CSV parser supports commas, quoted cells and line breaks inside quoted cells.
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let value = "";
+    let insideQuotes = false;
 
-        <label for="studentNumber" id="numberLabel">
-          Enter PRN Number
-        </label>
+    text = text.replace(/^\uFEFF/, "");
 
-        <input
-          type="text"
-          id="studentNumber"
-          placeholder="Enter your PRN Number"
-          autocomplete="off"
-        >
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const next = text[i + 1];
 
-      </div>
+      if (ch === '"' && insideQuotes && next === '"') {
+        value += '"';
+        i++;
+      } else if (ch === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (ch === "," && !insideQuotes) {
+        row.push(value.trim());
+        value = "";
+      } else if ((ch === "\n" || ch === "\r") && !insideQuotes) {
+        if (ch === "\r" && next === "\n") i++;
+        row.push(value.trim());
+        if (row.some(cell => cell !== "")) rows.push(row);
+        row = [];
+        value = "";
+      } else {
+        value += ch;
+      }
+    }
 
-      <button
-        type="button"
-        id="searchButton"
-        onclick="searchResult()"
-      >
-        View Result
-      </button>
+    row.push(value.trim());
+    if (row.some(cell => cell !== "")) rows.push(row);
+    return rows;
+  }
 
-      <div id="message" role="status" aria-live="polite"></div>
+  function showMessage(text, type) {
+    message.textContent = text;
+    message.className = type;
+    message.style.display = "block";
+  }
 
-    </section>
+  function clearResult() {
+    message.textContent = "";
+    message.className = "";
+    message.style.display = "none";
+    resultSection.hidden = true;
+    resultTable.innerHTML = "";
+  }
 
-    <section id="resultSection" hidden>
+  async function searchResult() {
+    clearResult();
+    const enteredPRN = normalizePRN(studentNumber.value);
 
-      <h2 class="result-heading">Student Result</h2>
+    if (!enteredPRN) {
+      showMessage("Please enter your PRN Number.", "error");
+      studentNumber.focus();
+      return;
+    }
 
-      <div class="result-info">
+    searchButton.disabled = true;
+    searchButton.textContent = "Searching...";
 
-        <div class="info-card">
-          <strong>Class</strong>
-          <span id="classInfo"></span>
-        </div>
+    const loadErrors = [];
 
-        <div class="info-card">
-          <strong>Assessment</strong>
-          <span id="assessmentInfo"></span>
-        </div>
+    try {
+      for (const config of resultFiles) {
+        try {
+          const response = await fetch(config.file, { cache: "no-store" });
 
-        <div class="info-card">
-          <strong>Semester</strong>
-          <span id="semesterInfo"></span>
-        </div>
+          if (!response.ok) {
+            loadErrors.push(config.className + ": HTTP " + response.status);
+            continue;
+          }
 
-        <div class="info-card">
-          <strong>PRN Number</strong>
-          <span id="studentInfo"></span>
-        </div>
+          const rows = parseCSV(await response.text());
+          if (rows.length < 2) {
+            loadErrors.push(config.className + ": CSV is empty or has no student rows");
+            continue;
+          }
 
-      </div>
+          // Both supplied CSV files use one header row. Find the PRN column by heading.
+          const headers = rows[0];
+          const prnColumn = headers.findIndex(h => {
+            const name = normalizeHeader(h);
+            return ["prn", "prn no", "prn number", "permanent registration number"].includes(name);
+          });
 
-      <div class="table-wrapper">
-        <table>
-          <tbody id="resultTable"></tbody>
-        </table>
-      </div>
+          if (prnColumn === -1) {
+            loadErrors.push(config.className + ": PRN No column was not found");
+            continue;
+          }
 
-    </section>
+          const dataRows = rows.slice(1);
+          const foundRow = dataRows.find(row =>
+            normalizePRN(row[prnColumn]) === enteredPRN
+          );
 
-    <footer class="footer">
-      Department of Electrical Engineering<br>
-      Dr. D. Y. Patil Pratishthan's College of Engineering,
-      Salokhenagar, Kolhapur
-    </footer>
-
-  </main>
-
-  <script>
-
-    // ==========================================
-    // 1. CSV FILE CONFIGURATION
-    // ==========================================
-
-    const resultFiles = {
-
-      "btech": {
-        file: "./Btech_Unit_test_-1_Result_with_PRN.csv",
-        className: "B.Tech",
-        assessment: "Unit Test 1",
-        semester: "VII",
-        searchType: "PRN",
-        searchHeaders: [
-          "prn",
-          "prn number",
-          "prn no",
-          "permanent registration number"
-        ]
-      },
-
-      "ty": {
-        file: "./Unit%20test%20-1%20and%20MSE.csv",
-        className: "TY",
-        assessment: "Unit Test 1 / MSE",
-        semester: "V",
-        searchType: "PRN",
-        searchHeaders: [
-          "prn",
-          "prn number",
-          "prn no",
-          "permanent registration number"
-        ]
+          if (foundRow) {
+            displayResult(headers, foundRow, config, enteredPRN);
+            showMessage("Result found successfully!", "success");
+            return;
+          }
+        } catch (error) {
+          console.error("Problem loading " + config.className + " CSV:", error);
+          loadErrors.push(config.className + ": " + error.message);
+        }
       }
 
-    };
-
-
-    // ==========================================
-    // 2. HTML ELEMENTS
-    // ==========================================
-
-    const resultType = document.getElementById("resultType");
-    const studentNumber = document.getElementById("studentNumber");
-    const numberLabel = document.getElementById("numberLabel");
-    const message = document.getElementById("message");
-    const resultSection = document.getElementById("resultSection");
-    const searchButton = document.getElementById("searchButton");
-
-
-    // ==========================================
-    // 3. ENTER KEY SEARCH
-    // ==========================================
-
-    studentNumber.addEventListener("keydown", function(event) {
-
-      if (event.key === "Enter") {
-        searchResult();
+      if (loadErrors.length === resultFiles.length) {
+        showMessage("Could not read the result CSV files. Check that both CSV files are uploaded to the same GitHub folder as index.html and that their filenames match the code. Details: " + loadErrors.join(" | "), "error");
+      } else {
+        showMessage("No result found for PRN " + enteredPRN + ". Please check the number. If the PRN cell is blank in the CSV, that student cannot be searched until the PRN is entered in the CSV.", "error");
       }
+    } finally {
+      searchButton.disabled = false;
+      searchButton.textContent = "View Result";
+    }
+  }
 
+  function displayResult(headers, row, config, prn) {
+    document.getElementById("classInfo").textContent = config.className;
+    document.getElementById("assessmentInfo").textContent = config.assessment;
+    document.getElementById("semesterInfo").textContent = config.semester;
+    document.getElementById("studentInfo").textContent = prn;
+
+    resultTable.innerHTML = "";
+    headers.forEach((header, index) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      const td = document.createElement("td");
+      th.textContent = header || ("Column " + (index + 1));
+      const cellValue = row[index];
+      td.textContent = cellValue === undefined || cellValue === "" ? "—" : cellValue;
+      tr.appendChild(th);
+      tr.appendChild(td);
+      resultTable.appendChild(tr);
     });
 
-
-    // ==========================================
-    // 4. SHOW MESSAGE
-    // ==========================================
-
-    function showMessage(text, type) {
-
-      message.textContent = text;
-      message.className = type;
-      message.style.display = "block";
-
-    }
-
-
-    // ==========================================
-    // 5. CLEAR PREVIOUS RESULT
-    // ==========================================
-
-    function clearResult() {
-
-      message.textContent = "";
-      message.className = "";
-      message.style.display = "none";
-
-      resultSection.hidden = true;
-
-      document.getElementById("resultTable").innerHTML = "";
-
-    }
-
-
-    // ==========================================
-    // 6. CSV PARSER
-    // ==========================================
-
-    function parseCSV(text) {
-
-      const rows = [];
-      let row = [];
-      let value = "";
-      let insideQuotes = false;
-
-      text = text.replace(/^\uFEFF/, "");
-
-      for (let i = 0; i < text.length; i++) {
-
-        const char = text[i];
-        const nextChar = text[i + 1];
-
-        if (char === '"' && insideQuotes && nextChar === '"') {
-
-          value += '"';
-          i++;
-
-        } else if (char === '"') {
-
-          insideQuotes = !insideQuotes;
-
-        } else if (char === "," && !insideQuotes) {
-
-          row.push(value.trim());
-          value = "";
-
-        } else if (
-          (char === "\n" || char === "\r") &&
-          !insideQuotes
-        ) {
-
-          if (char === "\r" && nextChar === "\n") {
-            i++;
-          }
-
-          row.push(value.trim());
-
-          if (row.some(cell => cell !== "")) {
-            rows.push(row);
-          }
-
-          row = [];
-          value = "";
-
-        } else {
-
-          value += char;
-
-        }
-
-      }
-
-      row.push(value.trim());
-
-      if (row.some(cell => cell !== "")) {
-        rows.push(row);
-      }
-
-      return rows;
-
-    }
-
-
-    // ==========================================
-    // 7. NORMALIZE CSV HEADINGS
-    // ==========================================
-
-    function normalizeHeader(value) {
-
-      return String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/[_-]/g, " ")
-        .replace(/\s+/g, " ");
-
-    }
-
-
-    // ==========================================
-    // 8. FIND PRN COLUMN
-    // ==========================================
-
-    function findColumn(headers, possibleNames) {
-
-      const normalized = headers.map(normalizeHeader);
-
-      for (const name of possibleNames) {
-
-        const index = normalized.indexOf(
-          normalizeHeader(name)
-        );
-
-        if (index !== -1) {
-          return index;
-        }
-
-      }
-
-      return -1;
-
-    }
-
-
-    // ==========================================
-    // 9. SEARCH BOTH CSV FILES BY PRN
-    // ==========================================
-
-    async function searchResult() {
-
-      clearResult();
-
-      const searchValue = studentNumber.value.trim();
-
-      if (!searchValue) {
-
-        showMessage(
-          "Please enter your PRN Number.",
-          "error"
-        );
-
-        studentNumber.focus();
-        return;
-
-      }
-
-      searchButton.disabled = true;
-      searchButton.textContent = "Searching...";
-
-      let fileLoaded = false;
-
-      try {
-
-        // Search B.Tech and TY files automatically
-
-        for (const config of Object.values(resultFiles)) {
-
-          try {
-
-            const response = await fetch(
-              config.file + "?v=" + Date.now(),
-              { cache: "no-store" }
-            );
-
-            if (!response.ok) {
-              continue;
-            }
-
-            fileLoaded = true;
-
-            const csvText = await response.text();
-            const rows = parseCSV(csvText);
-
-            if (rows.length < 2) {
-              continue;
-            }
-
-
-            // Check whether CSV has two header rows
-
-            const topHeaders = rows[0];
-            const secondRow = rows[1] || [];
-
-            const isSecondHeader = secondRow.some(cell => {
-
-              return [
-                "max",
-                "min",
-                "obtained",
-                "maximum",
-                "minimum"
-              ].includes(normalizeHeader(cell));
-
-            });
-
-
-            let headers;
-            let dataRows;
-
-
-            // Handle two-header-row CSV
-
-            if (isSecondHeader) {
-
-              headers = [];
-
-              let currentSubject = "";
-
-              const length = Math.max(
-                topHeaders.length,
-                secondRow.length
-              );
-
-              for (let i = 0; i < length; i++) {
-
-                const main = String(
-                  topHeaders[i] || ""
-                ).trim();
-
-                const sub = String(
-                  secondRow[i] || ""
-                ).trim();
-
-                if (main) {
-                  currentSubject = main;
-                }
-
-                if (i === 0) {
-
-                  headers.push(main || "PRN No");
-
-                } else if (i === 1) {
-
-                  headers.push(main || "Name of Student");
-
-                } else {
-
-                  headers.push(
-                    [currentSubject, sub]
-                      .filter(Boolean)
-                      .join(" ")
-                  );
-
-                }
-
-              }
-
-              // Skip both header rows
-              dataRows = rows.slice(2);
-
-            } else {
-
-              // Handle normal one-header-row CSV
-
-              headers = topHeaders;
-              dataRows = rows.slice(1);
-
-            }
-
-
-            // Find PRN column
-
-            let searchColumn = findColumn(
-              headers,
-              config.searchHeaders
-            );
-
-            // Fallback: PRN No is the first column
-            if (
-              searchColumn === -1 &&
-              normalizeHeader(headers[0]) === "prn no"
-            ) {
-
-              searchColumn = 0;
-
-            }
-
-            if (searchColumn === -1) {
-              continue;
-            }
-
-
-            // Find student by PRN number
-
-            const foundRow = dataRows.find(row => {
-
-              const csvPRN = String(
-                row[searchColumn] || ""
-              ).trim();
-
-              return csvPRN === searchValue;
-
-            });
-
-
-            // If student is found
-
-            if (foundRow) {
-
-              displayResult(
-                headers,
-                foundRow,
-                config,
-                searchValue
-              );
-
-              showMessage(
-                "Result found successfully!",
-                "success"
-              );
-
-              return;
-
-            }
-
-          } catch (fileError) {
-
-            console.error(
-              "Error reading " + config.className + " CSV:",
-              fileError
-            );
-
-          }
-
-        }
-
-
-        // No matching PRN found
-
-        if (!fileLoaded) {
-
-          showMessage(
-            "Unable to load result CSV files. Please check filenames.",
-            "error"
-          );
-
-        } else {
-
-          showMessage(
-            "No result found for this PRN number. Please check your PRN.",
-            "error"
-          );
-
-        }
-
-      } catch (error) {
-
-        showMessage(
-          error.message || "Something went wrong while loading the result.",
-          "error"
-        );
-
-      } finally {
-
-        searchButton.disabled = false;
-        searchButton.textContent = "View Result";
-
-      }
-
-    }
-
-
-    // ==========================================
-    // 10. DISPLAY STUDENT RESULT
-    // ==========================================
-
-    function displayResult(headers, row, config, searchValue) {
-
-      document.getElementById("classInfo").textContent =
-        config.className;
-
-      document.getElementById("assessmentInfo").textContent =
-        config.assessment;
-
-      document.getElementById("semesterInfo").textContent =
-        config.semester;
-
-      document.getElementById("studentInfo").textContent =
-        searchValue;
-
-
-      const tableBody = document.getElementById("resultTable");
-
-      tableBody.innerHTML = "";
-
-
-      headers.forEach((header, index) => {
-
-        const tr = document.createElement("tr");
-
-        const th = document.createElement("th");
-
-        const td = document.createElement("td");
-
-
-        th.textContent =
-          header || ("Column " + (index + 1));
-
-
-        td.textContent =
-          row[index] === undefined || row[index] === ""
-            ? "—"
-            : row[index];
-
-
-        tr.appendChild(th);
-        tr.appendChild(td);
-
-        tableBody.appendChild(tr);
-
-      });
-
-
-      resultSection.hidden = false;
-
-      resultSection.scrollIntoView({
-
-        behavior: "smooth",
-        block: "start"
-
-      });
-
-    }
-
-  </script>
-
+    resultSection.hidden = false;
+    resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+</script>
 </body>
 </html>
