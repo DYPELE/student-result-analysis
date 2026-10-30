@@ -471,7 +471,7 @@
         // For the existing file, fall back to the first column if no roll
         // number heading is found. For the PRN file, require a PRN heading
         // so that the wrong column is not searched accidentally.
-        if (searchColumn === -1 && resultType.value === "roll-ut1-mse") {
+        if (searchColumn === -1 && resultType.value === "prn-mse") {
           searchColumn = 0;
         }
 
